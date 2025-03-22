@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import fastifyEnv from '@fastify/env';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import { UUID } from 'crypto';
 
 // Load environment variables
 dotenv.config();
@@ -38,25 +39,20 @@ const Movie = sequelize.define('Movie', {
   thumbnail: {
     type: DataTypes.TEXT,
   },
- description:  {
-   type : DataTypes.TEXT
+  description:  {
+    type : DataTypes.TEXT
   },
   videoLink: {
     type: DataTypes.TEXT,
   },
 });
 
-
-
-
 // Initialize AdminJS
 AdminJS.registerAdapter(AdminJSSequelize);
 const adminJs = new AdminJS({
   branding: {
     companyName: "Add Movies",
-
     logo: "https://i.ibb.co.com/8DGFMT9m/movie.png",
-
     favicon: "https://i.ibb.co.com/h1nkyGG1/moveicon.png",
     theme: {
       colors: {
@@ -85,7 +81,6 @@ fastify.register(fastifyEnv, {
   dotenv: true,
 });
 
-
 // Register CORS (Allow all origins)
 fastify.register(cors, {
   origin: '*', // Allow all origins
@@ -94,7 +89,6 @@ fastify.register(cors, {
 
 // Register fastify-swagger and fastify-swagger-ui plugins
 fastify.register(fastifySwagger);
-
 fastify.register(fastifySwaggerUi, {
   routePrefix: '/docs',
 });
@@ -102,9 +96,53 @@ fastify.register(fastifySwaggerUi, {
 // Register AdminJS routes
 AdminJSFastify.buildRouter(adminJs, fastify);
 
+// GET route to retrieve all movies
+fastify.get('/movies', async (request, reply) => {
+  try {
+    // Query the database to fetch all movies
+    const movies = await Movie.findAll();
 
-fastify.get('/',(request, reply)=>{
-  reply.send({message : `Server is running on http://localhost:${port}`});
+    // Return all movies as JSON
+    reply.status(200).send({
+      message: 'All movies retrieved successfully',
+      movies,
+    });
+  } catch (error) {
+    // Handle any errors
+    reply.status(500).send({ error: 'Failed to retrieve movies' });
+  }
+});
+// Define type for params
+interface Params {
+  id: UUID; 
+}
+
+// GET route to retrieve a movie by its ID
+fastify.get('/movies/:id', async (request, reply) => {
+  const { id } = request.params as Params;
+
+  try {
+    // Query the database for the movie with the given ID
+    const movie = await Movie.findByPk(id);  // findByPk is used to find a record by primary key
+
+    if (!movie) {
+      return reply.status(404).send({ message: 'Movie not found' });
+    }
+
+    // Return the movie data in JSON format
+    reply.status(200).send({
+      message: 'Movie retrieved successfully',
+      movie,
+    });
+  } catch (error) {
+    // Handle any errors
+    reply.status(500).send({ error: 'Failed to retrieve movie' });
+  }
+});
+
+// Default route
+fastify.get('/', (request, reply) => {
+  reply.send({ message: `Server is running on http://localhost:${port}` });
 });
 
 // Start the server
@@ -112,8 +150,8 @@ const start = async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
-    await fastify.listen({ port: port,host: '0.0.0.0' });
-    console.log('Server is running on http://localhost:3000');
+    await fastify.listen({ port: port, host: '0.0.0.0' });
+    console.log(`Server is running on http://localhost:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
