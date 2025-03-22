@@ -3,6 +3,7 @@ import AdminJS from 'adminjs';
 import AdminJSFastify from '@adminjs/fastify';
 import AdminJSSequelize from '@adminjs/sequelize';
 import { DataTypes, Sequelize } from 'sequelize';
+import cors from '@fastify/cors';
 import dotenv from 'dotenv';
 import fastifyEnv from '@fastify/env';
 import fastifySwagger from '@fastify/swagger';
@@ -48,13 +49,14 @@ const Movie = sequelize.define('Movie', {
 
 
 
-
 // Initialize AdminJS
 AdminJS.registerAdapter(AdminJSSequelize);
 const adminJs = new AdminJS({
   branding: {
     companyName: "Add Movies",
-    logo: "https://i.ibb.co.com/8DGFMT9m/movie.png", 
+
+    logo: "https://i.ibb.co.com/8DGFMT9m/movie.png",
+
     favicon: "https://i.ibb.co.com/h1nkyGG1/moveicon.png",
     theme: {
       colors: {
@@ -81,6 +83,13 @@ fastify.register(fastifyEnv, {
     },
   },
   dotenv: true,
+});
+
+
+// Register CORS (Allow all origins)
+fastify.register(cors, {
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 });
 
 // Register fastify-swagger and fastify-swagger-ui plugins

@@ -4,6 +4,7 @@
     "@adminjs/fastify": "^4.2.0",
     "@adminjs/sequelize": "^4.1.1",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.0.0",
     "@fastify/env": "^5.0.2",
     "@fastify/session": "^11.1.0",
     "@fastify/swagger-ui": "^5.2.2",
